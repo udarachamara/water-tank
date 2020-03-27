@@ -1,4 +1,5 @@
 
+
 double water_level = 0;
 float water_sensor = 0;
 float intervals_reads[2] = {0, 0};
@@ -10,30 +11,69 @@ void setup() {
   pinMode(2, OUTPUT);
   pinMode(3, OUTPUT);
   pinMode(5, OUTPUT);
+  pinMode(9, INPUT);
   pinMode(A0, INPUT);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
 
+  int d9Read1 = digitalRead(9);
+  delay(5);
+  int d9Read2 = digitalRead(9);
+  delay(5);
+  int d9Read3 = digitalRead(9);
+  delay(5);
+  int d9Read4 = digitalRead(9);
+  delay(5);
+  int d9Read5 = digitalRead(9);
+
+  int avg = d9Read1 + d9Read2 + d9Read3 + d9Read4 + d9Read4;
+  Serial.println(avg);
+  if (avg > 4) {
+    autoMode();
+  } else {
+    manualMode();
+  }
+
+}
+
+//if manual mode is on
+void manualMode() {
+
+  Serial.println("manual");
+  digitalWrite(5, HIGH);
+
+  //reseting all
+  water_level = 0;
+  system_error = false;
+
+}
+
+//if manual mode is off
+void autoMode() {
   if (system_error) {
+
+    Serial.println("system error");
     digitalWrite(5, LOW);
     systemErrorIndicator();
   } else {
     water_sensor = analogRead(A0);
-    //Serial.println(water_sensor);
 
     if (water_sensor > 50) {
-      if(checkSensorValueForTimeIntervals()){
+      if (checkSensorValueForTimeIntervals()) {
+
+        Serial.println("water machine on");
         onWaterMachine();
       }
-        
+
     } else {
       tankFullIndicate();
+
+      Serial.println("water macine off");
       offWaterMachine();
     }
   }
-
 }
 
 void tankFullIndicate() {
@@ -54,10 +94,11 @@ void waterFillingIndicate() {
     analogWrite(3, 0);
     delay(300);
     water_level++;
-
-        if(hasSystemError()){
-          break;
-        }
+    Serial.print("water level ");
+    Serial.println(water_level);
+    if (hasSystemError()) {
+      break;
+    }
   }
 }
 
