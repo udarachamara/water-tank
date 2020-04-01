@@ -1,9 +1,10 @@
 
-
 double water_level = 0;
 float water_sensor = 0;
 float intervals_reads[2] = {0, 0};
 boolean system_error = false;
+int sensor_margin = 50;
+int capacity = 350;
 
 void setup() {
   // put your setup code here, to run once:
@@ -60,9 +61,13 @@ void autoMode() {
   } else {
     water_sensor = analogRead(A0);
 
-    if (water_sensor > 50) {
-      if (checkSensorValueForTimeIntervals()) {
-
+    if (water_sensor > sensor_margin ) {
+      float temp1 = analogRead(A0);
+      delay(20);
+      float temp2 = analogRead(A0);
+      delay(20);
+      float temp3 = analogRead(A0);
+      if (temp1 > sensor_margin && temp2 > sensor_margin && temp3 > sensor_margin) {
         Serial.println("water machine on");
         onWaterMachine();
       }
@@ -88,7 +93,7 @@ void tankLowIndicate() {
 
 // this function is for blink red led while water filling in to tank
 void waterFillingIndicate() {
-  for (int i = 0 ; i < 400 ; i++) {
+  for (int i = 0 ; i < capacity ; i++) {
     analogWrite(3, 200);
     delay(300);
     analogWrite(3, 0);
@@ -122,11 +127,11 @@ void systemErrorIndicator() {
 
 boolean checkSensorValueForTimeIntervals() { // validate sensor value some time intervals
   intervals_reads[0] = analogRead(A0);
-  delay(1000);
+  delay(10);
   intervals_reads[1] = analogRead(A0);
-  delay(1000);
+  delay(10);
 
-  if (intervals_reads[0] > 50 && intervals_reads[1] > 50 ) {
+  if (intervals_reads[0] > sensor_margin && intervals_reads[1] > sensor_margin ) {
     return true;
   } else {
     return false;
@@ -134,15 +139,25 @@ boolean checkSensorValueForTimeIntervals() { // validate sensor value some time 
 }
 
 boolean hasSystemError() { // check whether sensor conecter broken or not
-  float temp1 = analogRead(A0);
-  float temp2 = analogRead(A0);
-  if (water_level > 15 && water_level < 18) {
-    if (temp1 > 50 && temp2 > 50) {
+  if (water_level > 15 && water_level < 22) {
+    
+    float temp1 = analogRead(A0);
+    delay(20);
+    float temp2 = analogRead(A0);
+    delay(30);
+    float temp3 = analogRead(A0);
+    
+    float avg = temp3 + temp2 + temp1;
+    Serial.println(avg);
+    if (avg > sensor_margin) {
+      Serial.println("ghfvj jhvjhv");
       system_error = true;
       digitalWrite(5, LOW);
       return true;
     } else {
       return false;
     }
+  }else{
+    return false;
   }
 }
